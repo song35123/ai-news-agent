@@ -1,0 +1,24 @@
+sources:
+  - name: Hacker News
+    url: https://news.ycombinator.com/rss
+    enabled: true
+
+  - name: MIT Technology Review AI
+    url: https://www.technologyreview.com/topic/artificial-intelligence/feed
+    enabled: true
+
+  - name: TechCrunch AI
+    url: https://techcrunch.com/category/artificial-intelligence/feed/
+    enabled: true
+
+  - name: VentureBeat AI
+    url: https://venturebeat.com/category/ai/feed/
+    enabled: true
+
+  - name: The Decoder
+    url: https://the-decoder.com/feed/
+    enabled: true
+
+  - name: OpenAI
+    url: https://openai.com/news/rss.xml
+    enabled: false

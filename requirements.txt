@@ -1,0 +1,7 @@
+feedparser>=6.0.11
+PyYAML>=6.0
+Flask>=3.0
+deep-translator>=1.11
+Pillow>=10.0
+reportlab>=4.0
+pdfplumber>=0.11

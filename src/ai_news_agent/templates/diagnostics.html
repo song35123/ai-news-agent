@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>运行诊断 - AI News Agent</title>
+    <link rel="icon" href="{{ url_for('static', filename='app_icon.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <img class="app-logo" src="{{ url_for('static', filename='app_icon.png') }}" alt="">
+          <div>
+            <p class="eyebrow">Diagnostics</p>
+            <h1>运行诊断</h1>
+            <p class="subtitle">检查数据库、翻译状态和运行依赖是否就绪。</p>
+          </div>
+        </div>
+        <a class="button-link primary" href="{{ url_for('index') }}">返回首页</a>
+      </header>
+
+      <section class="stats">
+        <div>
+          <strong>{{ diagnostics.stats.total }}</strong>
+          <span>已保存</span>
+        </div>
+        <div>
+          <strong>{{ diagnostics.stats.relevant }}</strong>
+          <span>通过审查</span>
+        </div>
+        <div>
+          <strong>{{ diagnostics.stats.translated }}</strong>
+          <span>已翻译</span>
+        </div>
+      </section>
+
+      <section class="news-list">
+        <article class="news-card">
+          <h2>翻译状态</h2>
+          <p>{{ diagnostics.translation.label }}：{{ diagnostics.translation.detail }}</p>
+        </article>
+
+        <article class="news-card">
+          <h2>依赖检查</h2>
+          <div class="review">
+            {% for dep in diagnostics.dependencies %}
+              <span>{{ dep.name }}：{{ "正常" if dep.ok else "缺失" }}</span>
+            {% endfor %}
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

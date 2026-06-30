@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>中美 AI 公司新闻观察</title>
+    <link rel="icon" href="{{ url_for('static', filename='app_icon.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <img class="app-logo" src="{{ url_for('static', filename='app_icon.png') }}" alt="">
+          <div>
+            <p class="eyebrow">Local AI News Monitor</p>
+            <h1>中美 AI 公司新闻观察</h1>
+            <p class="subtitle">自动抓取、审查、翻译并整理 OpenAI、DeepSeek、Anthropic、阿里、腾讯等 AI 科技公司动态。</p>
+          </div>
+        </div>
+        <form action="{{ url_for('update_today') }}" method="post">
+          <input name="action_token" type="hidden" value="{{ action_token }}">
+          <button class="primary" type="submit">一键更新今日简报</button>
+        </form>
+      </header>
+
+      {% if message %}
+        <section class="notice success">{{ message }}</section>
+      {% endif %}
+      {% if error %}
+        <section class="notice error">{{ error }}</section>
+      {% endif %}
+
+      <section class="stats">
+        <div>
+          <strong>{{ stats.total }}</strong>
+          <span>已保存</span>
+        </div>
+        <div>
+          <strong>{{ stats.relevant }}</strong>
+          <span>通过审查</span>
+        </div>
+        <div>
+          <strong>{{ stats.translated }}</strong>
+          <span>已翻译</span>
+        </div>
+      </section>
+
+      <section class="toolbar">
+        <form action="{{ url_for('index') }}" method="get" class="filters">
+          <label>
+            最近天数
+            <input name="days" type="number" min="1" max="30" value="{{ days }}">
+          </label>
+          <label>
+            显示条数
+            <input name="limit" type="number" min="5" max="100" value="{{ limit }}">
+          </label>
+          <label>
+            范围
+            <select name="scope">
+              <option value="relevant" {% if scope != "all" %}selected{% endif %}>只看通过审查</option>
+              <option value="all" {% if scope == "all" %}selected{% endif %}>全部抓取内容</option>
+            </select>
+          </label>
+          <button type="submit">应用</button>
+        </form>
+
+        <details class="advanced-actions">
+          <summary>高级操作</summary>
+          <div class="actions">
+            <form action="{{ url_for('setup_translation') }}" method="post">
+              <input name="action_token" type="hidden" value="{{ action_token }}">
+              <button type="submit">修复/安装离线翻译</button>
+            </form>
+            <form action="{{ url_for('refresh') }}" method="post">
+              <input name="action_token" type="hidden" value="{{ action_token }}">
+              <button type="submit">仅刷新新闻</button>
+            </form>
+            <form action="{{ url_for('refresh_translate') }}" method="post">
+              <input name="action_token" type="hidden" value="{{ action_token }}">
+              <button type="submit">刷新并翻译</button>
+            </form>
+            <form action="{{ url_for('translate') }}" method="post">
+              <input name="action_token" type="hidden" value="{{ action_token }}">
+              <input name="limit" type="hidden" value="10">
+              <button type="submit">翻译最新 10 条</button>
+            </form>
+            <form action="{{ url_for('brief') }}" method="post">
+              <input name="action_token" type="hidden" value="{{ action_token }}">
+              <input name="days" type="hidden" value="{{ days }}">
+              <input name="limit" type="hidden" value="{{ limit }}">
+              <input name="scope" type="hidden" value="{{ scope }}">
+              <button type="submit">生成 Markdown</button>
+            </form>
+            <form action="{{ url_for('download_pdf') }}" method="post">
+              <input name="action_token" type="hidden" value="{{ action_token }}">
+              <input name="days" type="hidden" value="{{ days }}">
+              <input name="scope" type="hidden" value="{{ scope }}">
+              <button type="submit">下载 PDF</button>
+            </form>
+            <a class="button-link" href="{{ url_for('diagnostics') }}">运行诊断</a>
+          </div>
+        </details>
+      </section>
+
+      <section class="hint">
+        <strong>{{ translation_status.label }}</strong>
+        <span>{{ translation_status.detail }}</span>
+      </section>
+
+      <section class="news-list">
+        {% for item in rows %}
+          <article class="news-card {% if not item['is_relevant'] %}muted-card{% endif %}">
+            <div class="meta">
+              <span>{{ item["source"] }}</span>
+              <time>{{ item["published_at"] or item["fetched_at"] }}</time>
+            </div>
+            <h2>
+              <a href="{{ item['url'] }}" target="_blank" rel="noreferrer">
+                {{ item["title_zh"] or item["title"] }}
+              </a>
+            </h2>
+            {% if item["summary_zh"] or item["summary"] %}
+              <p>{{ item["summary_zh"] or item["summary"] }}</p>
+            {% endif %}
+
+            <div class="review">
+              {% for company in item.company_badges %}
+                <span class="company-badge" title="{{ company.name }}">
+                  {% if company.logo_url %}
+                    <img src="{{ company.logo_url }}" alt="" loading="lazy" onerror="this.hidden=true; this.nextElementSibling.hidden=false;">
+                    <b hidden>{{ company.initial }}</b>
+                  {% else %}
+                    <b>{{ company.initial }}</b>
+                  {% endif %}
+                  {{ company.name }}
+                </span>
+              {% endfor %}
+              {% if item["regions"] %}
+                <span>{{ item["regions"] }}</span>
+              {% endif %}
+              {% if item["content_type"] %}
+                <span>{{ item["content_type"] }}</span>
+              {% endif %}
+              <span>相关度 {{ item["relevance_score"] }}</span>
+              <span>{{ item["review_reason"] }}</span>
+            </div>
+
+            {% if item["title_zh"] %}
+              <div class="original">原文标题：{{ item["title"] }}</div>
+            {% endif %}
+          </article>
+        {% else %}
+          <section class="empty">
+            <h2>还没有符合范围的新闻</h2>
+            <p>点击“刷新新闻”，或把范围切换到“全部抓取内容”查看未通过审查的条目。</p>
+          </section>
+        {% endfor %}
+      </section>
+    </main>
+  </body>
+</html>
